@@ -95,7 +95,8 @@ module.exports = merge(baseWebpackConfig, {
     new webpack.ProvidePlugin({
       $: "jquery",
       jQuery: "jquery",
-      "window.jQuery": "jquery"
+      "window.jQuery": "jquery",
+      _: "lodash",
     })
     
   ]

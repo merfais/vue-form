@@ -14,11 +14,12 @@ import validator from 'validator';
  *
  */
 const SELF_DEFINED_RULES = {
-  isRequired: /\S/,
-  isPort: ['isInt', {
+  required: /\S/,
+  isAge: ['isInt', {
     min: 0,
-    max: 65535
+    max: 150
   }],
+  isPhone: ['isMobilePhone', 'zh-CN'],
 };
 
 
@@ -30,11 +31,10 @@ const SELF_DEFINED_RULES = {
  *
  */
 const ERROR_MSG = {
-  isRequired: '必填',
-  isIP: '需要IPv4地址',
-  isIn: '数据不在备选范围内',
-  isInt: '必须是范围内的数字',
-  isPort: '需要填入端口范围，0-65535',
+  required: '必填',
+  isAge: '请输入正确的年龄',
+  isPhone: '请输入中国地区电话号码',
+  isEmail: '请输入正确的邮箱地址',
 };
 
 /**

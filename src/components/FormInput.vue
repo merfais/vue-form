@@ -15,11 +15,11 @@
 </style>
 
 <template>
-  <div :id='id' class='form-group b-form-group' :class='{"form-inline": inlineAble}'>
+  <div :id='id' class='form-group' :class='{"form-inline": inlineAble}'>
     <label class='control-label b-control-label' :style='{width: labelWidth}'>
       {{label}}
     </label>
-    <input :type='type' class='form-control'
+    <input :type='type' class='form-control b-form-control'
       data-placement='bottom' :title='msg'
       :placeholder='holder' v-model='value' :style='{width: inputWidth}'
       @focus='focus' @blur='blur' :disabled='disabled'/>
@@ -30,7 +30,6 @@
   import valid from 'src/util/valid.js';
 
   export default {
-    components: {},
     props: {
       type: {
         type: String,
@@ -41,7 +40,12 @@
       label: {
         type: String,
       },
-      value: {
+      value: {},
+      valid: {
+        type: Boolean,
+        default() {
+          return true;
+        }
       },
       holder: {
         type: String,
@@ -58,22 +62,13 @@
           return true;
         }
       },
-      disabled: {
-        default() {
-          return false;
-        }
-      },
       inputWidth: {
         type: String,
-        default() {
-          return '60%';
-        }
+        default: '70%',
       },
       labelWidth: {
         type: String,
-        default() {
-          return '30%';
-        }
+        default: '25%',
       },
       inlineAble: {
         type: Boolean,
@@ -86,19 +81,19 @@
       return {
         id: '',
         msg: '',
-        valid: true,
         ruleMsg: {},
         tooltipOut: '',
       };
     },
     events: {
       validating() {
-        // console.log('validating');
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       initialize() {
+        this.valid = true;
         this.hideMsg();
       }
     },
@@ -125,37 +120,39 @@
           // 初始化tooltip插件，msg!=null 才能成功
           $input.tooltip({
             delay: { show: 200, hide: 10000 },
-            trigger: 'focus',
+            trigger: 'manual',
           });
         });
       },
       focus() {
         // 获取焦点，校验
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       blur() {
         // 失去焦点，检验
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       validate() {
-        // 逐条校验规则，一旦失败返回
+        if (this.value || this.value === 0) {
+          this.value = this.value.toString();
+        }
         const val = this.value ? this.value.trim() : '';
-        this.valid = true;
-        if (!('isRequired' in this.ruleMsg) && val.length === 0) {
-          // 如果可以为空，并且没有填写，则不校验，
-        } else {
-          // 其他情况都校验
-          _.forEach(this.rules, rule => {
+        if ('required' in this.ruleMsg || val.length > 0) {
+          // 如果必填或者填写内容，则需要校验，其他情况不校验
+          // 逐条校验规则，一旦失败返回
+          _.forEach(this.rules, rule => { // eslint-disable-line consistent-return
             const result = valid.isValid(val, rule);
             if (!result.valid) {
               // 校验未通过
               this.valid = false;
               this.msg = result.msg;
-              return;
+              return false;
             }
           });
         }
@@ -168,15 +165,13 @@
         });
       },
       showMsg() {
-        // 用于显示校验结果，包括 tooltip，icon
         const $input = $(`#${this.id} input`);
-        const $tooltip = $(`#${this.id} .tooltip-inner`);
         if (this.valid) {
           $input.tooltip('hide');
         } else {
           $input.attr('data-original-title', this.msg);
           $input.tooltip('show');
-          // 1秒后清除tooltip
+          // 1.5秒后清除tooltip
           clearTimeout(this.tooltipOut);
           this.tooltipOut = setTimeout(() => {
             $input.tooltip('hide');
@@ -184,7 +179,6 @@
         }
       },
       hideMsg() {
-        // 用于显示校验结果，包括 tooltip，icon
         const $input = $(`#${this.id} input`);
         // 清除所有信息
         $input.tooltip('hide');
@@ -193,6 +187,6 @@
     ready() {
       this.init();
     }
-  } // eslint-disable-line semi
+  }
 </script>
 

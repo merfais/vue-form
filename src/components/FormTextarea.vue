@@ -1,19 +1,5 @@
 
 <style lang="less" scoped>
-  .b-form-group {
-    padding-left: 5px;
-    .b-form-control {
-      font-size: 1em;
-      padding: 3px;
-    }
-    .b-control-label {
-      font-weight: normal;
-      font-size: 0.9em;
-      margin-right: 3px;
-      margin-top: 3px;
-      vertical-align: top;
-    }
-  }
   .form-inline {
     margin-bottom: 0;
     padding-top: 9px;
@@ -46,12 +32,22 @@
   import valid from 'src/util/valid.js';
 
   export default {
-    components: {},
     props: {
+      rows: {
+        type: Number,
+        default() {
+          return 3;
+        }
+      },
       label: {
         type: String,
       },
-      value: {
+      value: {},
+      valid: {
+        type: Boolean,
+        default() {
+          return true;
+        }
       },
       holder: {
         type: String,
@@ -68,12 +64,6 @@
           return true;
         }
       },
-      rows: {
-        type: Number,
-        default() {
-          return 3;
-        }
-      },
       disabled: {
         default() {
           return false;
@@ -82,17 +72,14 @@
       textareaWidth: {
         type: String,
         default() {
-          return '160px';
+          return '70%';
         }
       },
       labelWidth: {
         type: String,
         default() {
-          return '80px';
+          return '25%';
         }
-      },
-      tooltipWidth: {
-        type: String,
       },
       inlineAble: {
         type: Boolean,
@@ -105,19 +92,19 @@
       return {
         id: '',
         msg: '',
-        valid: true,
         ruleMsg: {},
         tooltipOut: '',
       };
     },
     events: {
       validating() {
-        // console.log('validating');
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       initialize() {
+        this.valid = true;
         this.hideMsg();
       }
     },
@@ -137,44 +124,46 @@
         // 采用的是bootstrap的tooltip插件
         if (!_.isEmpty(this.rules)) {
           const tmpMsg = _.values(this.ruleMsg)[0];
-          this.msg = tmpMsg ? tmpMsg : 'init';  // eslint-disable-line no-unneeded-ternary
+          this.msg = tmpMsg || 'init';
         }
         this.$nextTick(function() {
           const $textarea = $(`#${this.id} textarea`);
           // 初始化tooltip插件，msg!=null 才能成功
           $textarea.tooltip({
             delay: { show: 200, hide: 10000 },
-            trigger: 'focus',
+            trigger: 'manual',
           });
         });
       },
       focus() {
         // 获取焦点，校验
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       blur() {
         // 失去焦点，检验
+        this.valid = true;
         if (this.check) {
           this.validate();
         }
       },
       validate() {
-        // 逐条校验规则，一旦失败返回
+        if (this.value || this.value === 0) {
+          this.value = this.value.toString();
+        }
         const val = this.value ? this.value.trim() : '';
-        this.valid = true;
-        if (!('isRequired' in this.ruleMsg) && val.length === 0) {
-          // 如果可以为空，并且没有填写，则不校验，
-        } else {
-          // 其他情况都校验
-          _.forEach(this.rules, rule => {
+        if ('required' in this.ruleMsg || val.length > 0) {
+          // 如果必填或者填写内容，则需要校验，其他情况不校验
+          // 逐条校验规则，一旦失败返回
+          _.forEach(this.rules, rule => { // eslint-disable-line consistent-return
             const result = valid.isValid(val, rule);
             if (!result.valid) {
               // 校验未通过
               this.valid = false;
               this.msg = result.msg;
-              return;
+              return false;
             }
           });
         }
@@ -187,20 +176,13 @@
         });
       },
       showMsg() {
-        // 用于显示校验结果，包括 tooltip，icon
         const $textarea = $(`#${this.id} textarea`);
-        const $tooltip = $(`#${this.id} .tooltip-inner`);
         if (this.valid) {
           $textarea.tooltip('hide');
         } else {
           $textarea.attr('data-original-title', this.msg);
-          if (this.tooltipWidth) {
-            $tooltip.addCss({
-              width: this.tooltipWidth,
-            });
-          }
           $textarea.tooltip('show');
-          // 1秒后清除tooltip
+          // 1.5秒后清除tooltip
           clearTimeout(this.tooltipOut);
           this.tooltipOut = setTimeout(() => {
             $textarea.tooltip('hide');
@@ -208,7 +190,6 @@
         }
       },
       hideMsg() {
-        // 用于显示校验结果，包括 tooltip，icon
         const $textarea = $(`#${this.id} textarea`);
         // 清除所有信息
         $textarea.tooltip('hide');
@@ -217,6 +198,6 @@
     ready() {
       this.init();
     }
-  } // eslint-disable-line semi
+  }
 </script>
 

@@ -1,52 +1,38 @@
 
-<style type="text/css" media="all"  lang="less" rel="stylesheet/less" scoped>
+<style lang="less" scoped>
   .form-container {
     .form-body{
       min-height: 250px;
     }
     .form-footer{
+      text-align: center;
       .btn {
-        width: 80px;
-        margin: 22px 20px 15px 0;
+        margin: 10px;
       }
     }
   }
 </style>
 
 <template>
-<div class='form-container'>
-  <div class='form-body'>
-    <slot name='body'> </slot>
+  <div class='form-container'>
+    <div class='form-body'>
+      <slot name='body'></slot>
+    </div>
+    <div class='form-footer clearfix'>
+      <button class="btn btn-default" @click="clickCancel">取消</button>
+      <button class="btn btn-primary" @click="clickApprove">确定</button>
+    </div>
   </div>
-  <div class='form-footer col-md-12 '>
-   <button type="button" class="btn btn-primary pull-right"
-      @click="clickApprove">确认</button>
-    <button type="button" class="btn btn-default pull-right" 
-      @click="clickCancel">取消</button>
-  </div>
-</div>
 </template>
 
 <script>
   export default {
-    components: {
-    },
     props: {
       areaCount: {
         required: true,
         type: Number,
         default() {
           return 0;
-        }
-      },
-      cancelAble: {
-        default() {
-          return false;
-        }
-      },
-      okAble: {
-        default() {
-          return true;
         }
       },
       onCancel: {
@@ -60,25 +46,22 @@
     },
     data() {
       return {
-        signal: false,  // 自检状态
+        signal: false,  // 检测状态， true 检测中，false 检测完毕
         validCount: 0,  // 记录自检完成的子组件个数
         validName: [], // 记录自检完成的子组件名字，配合计数，为了双保险
         valid: true,    // 检验通过标示，采用 && 计算 只要有一个组件没有通过，则false
       };
     },
-    directives: {
-    },
     events: {
       checkedover(msg) {
-        // console.log('checkedover');
         if (this.signal && msg && this.validName.indexOf(msg.name) === -1) {
           // 如果这个child首次校验完成，过滤重复发送时间的child
           this.valid = msg.valid && this.valid;
           this.validName.push(msg.name);
           this.validCount += 1;
           if (this.validCount === this.areaCount) {
-            // 全部自检完成，更新信号，派发事件
-            this.signal = false;
+            // 全部自检完成，更新信号，触发回调
+            this.signal = false;  // 更新校验状态为校验完毕
             this.onApprove(this.valid);
           }
         }
@@ -86,7 +69,6 @@
     },
     methods: {
       clickCancel() {
-        this.init();
         this.$broadcast('initialize');
         this.onCancel();
       },
@@ -109,8 +91,6 @@
     },
     ready() {
     }
-  } // eslint-disable-line
+  }
 </script>
-
-
 
